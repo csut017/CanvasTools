@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Serilog;
 
@@ -52,7 +53,7 @@ public class RestConnection
     /// <param name="options">The options for retrieving the data.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to use.</param>
     /// <returns>An <see cref="IQueryable{TItem}"/> containing the entities from Canvas.</returns>
-    public async IAsyncEnumerable<TItem> List<TItem>(string url, IParameters parameters, ListOptions? options = null, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<TItem> List<TItem>(string url, IParameters parameters, ListOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         where TItem : class
     {
         var fullUrl = url + parameters.ToQueryString();
@@ -63,7 +64,7 @@ public class RestConnection
         var maxPage = options?.MaxPages ?? int.MaxValue;
         while (!cancel && !string.IsNullOrEmpty(fullUrl) && pageNumber < maxPage)
         {
-            Logger?.Debug("Retrieving {page} of {type} entities from {url}", pageNumber, typeof(TItem).Name, fullUrl);
+            Logger?.Debug("Retrieving page {page} of {type} entities from {url}", pageNumber, typeof(TItem).Name, fullUrl);
             var response = await Client.GetAsync(fullUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStreamAsync(cancellationToken);

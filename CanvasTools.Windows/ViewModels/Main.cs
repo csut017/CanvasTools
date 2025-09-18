@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using CanvasTools.Connection;
 using CanvasTools.Windows.Interfaces;
 using CanvasTools.Windows.ViewModels.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,11 +9,34 @@ using Serilog;
 
 namespace CanvasTools.Windows.ViewModels;
 
-public partial class Main(IShell shell, ILogger logger, IWindowManager windowManager, IServiceProvider serviceProvider)
+/// <summary>
+/// The view model for the application's main window.
+/// </summary>
+public partial class Main(IShell shell, ILogger logger, IWindowManager windowManager, IServiceProvider serviceProvider, ICanvas canvas)
     : ObservableObject
 {
     private IWindow? _logsView;
     public IShell Shell => shell;
+
+    /// <summary>
+    /// Initialises the main window.
+    /// </summary>
+    public void Initialise()
+    {
+        shell.UpdateStatus("Initialising main...", true);
+        IUser? user = null;
+        Task.Run(async () =>
+            {
+                shell.UpdateStatus("Retrieving user details from Canvas...", true);
+                user = await canvas.RetrieveCurrentUser();
+            })
+            .ContinueWith(t =>
+            {
+                shell.CurrentUser = user;
+                shell.UpdateStatus("Initialised main");
+                shell.InitialiseCurrentView();
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
 
     [RelayCommand]
     private void Exit()

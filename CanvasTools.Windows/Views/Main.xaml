@@ -25,6 +25,10 @@
         <ContentControl Grid.Row="1" Content="{Binding Shell.CurrentView}" />
 
         <StatusBar Grid.Column="0" Grid.Row="2">
+            <StatusBarItem VerticalAlignment="Center" Height="26">
+                <TextBlock Text="{Binding Shell.CurrentUser.Name, FallbackValue=Not connected}" />
+            </StatusBarItem>
+            <Separator Margin="2,4" Visibility="{Binding Shell.IsLoading, Converter={StaticResource BoolToVisibility}}" />
             <ProgressBar Width="100" HorizontalAlignment="Left" Height="16" Margin="3" IsIndeterminate="True"
                          Visibility="{Binding Shell.IsLoading, Converter={StaticResource BoolToVisibility}}" />
             <Separator Margin="2,4" Visibility="{Binding Shell.IsLoading, Converter={StaticResource BoolToVisibility}}" />

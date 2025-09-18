@@ -19,7 +19,9 @@ public class CanvasTests
         };
 
         // Act
-        var actual = await canvas.RetrieveCourse(456);
+        var actual = await canvas.RetrieveCourse(
+            456,
+            TestContext.Current.CancellationToken);
 
         // Assert
         A.CallTo(() => connection.Retrieve<Course>("/api/v1/courses/456", A<IParameters>.Ignored, A<CancellationToken>.Ignored))
@@ -47,7 +49,9 @@ public class CanvasTests
         };
 
         // Act
-        var actual = await canvas.RetrieveCourse(456);
+        var actual = await canvas.RetrieveCourse(
+            456,
+            TestContext.Current.CancellationToken);
 
         // Assert
         A.CallTo(() => connection.Retrieve<Course>(url, A<IParameters>.Ignored, A<CancellationToken>.Ignored))
@@ -63,6 +67,39 @@ public class CanvasTests
     }
 
     [Fact]
+    public async Task RetrieveCurrentUserCallsConnection()
+    {
+        // Arrange
+        const string url = "/api/v1/users/self";
+        var connection = A.Fake<IConnection>();
+        var user = new User
+        {
+            Name = "Bob Smith",
+            Id = 3,
+        };
+        A.CallTo(() => connection.Retrieve<User>(url, A<IParameters>.Ignored, A<CancellationToken>.Ignored))
+            .Returns(Task.FromResult(user));
+        var canvas = new Canvas
+        {
+            Connection = connection,
+        };
+
+        // Act
+        var actual = await canvas.RetrieveCurrentUser(TestContext.Current.CancellationToken);
+
+        // Assert
+        A.CallTo(() => connection.Retrieve<User>(url, A<IParameters>.Ignored, A<CancellationToken>.Ignored))
+            .MustHaveHappened();
+        actual.ShouldBe(user);
+        user = (User)actual;
+        user.ShouldSatisfyAllConditions(
+            () => user.Canvas.ShouldBe(canvas),
+            () => user.IsLocked.ShouldBeTrue(),
+            () => actual.Name.ShouldBe("Bob Smith"),
+            () => actual.Id.ShouldBe((ulong)3));
+    }
+
+    [Fact]
     public async Task RetrieveTermHandlesUnknownTerm()
     {
         // Arrange
@@ -75,7 +112,10 @@ public class CanvasTests
         };
 
         // Act
-        var actual = await canvas.RetrieveTerm(123, 456);
+        var actual = await canvas.RetrieveTerm(
+            123,
+            456,
+            TestContext.Current.CancellationToken);
 
         // Assert
         A.CallTo(() => connection.Retrieve<Term>("/api/v1/accounts/123/terms/456", A<IParameters>.Ignored, A<CancellationToken>.Ignored))
@@ -102,7 +142,10 @@ public class CanvasTests
         };
 
         // Act
-        var actual = await canvas.RetrieveTerm(123, 456);
+        var actual = await canvas.RetrieveTerm(
+            123,
+            456,
+            TestContext.Current.CancellationToken);
 
         // Assert
         A.CallTo(() => connection.Retrieve<Term>(url, A<IParameters>.Ignored, A<CancellationToken>.Ignored))

@@ -44,6 +44,7 @@ public partial class App : Application
         var shell = serviceProvider.GetRequiredService<IShell>();
         shell.UpdateStatus("Application started");
         shell.DisplayView(initialView);
+        main.Initialise();
     }
 
     /// <summary>

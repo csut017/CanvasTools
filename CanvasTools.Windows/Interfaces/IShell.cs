@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CanvasTools.Connection;
+using CommunityToolkit.Mvvm.Input;
 
 namespace CanvasTools.Windows.Interfaces;
 
@@ -7,6 +8,11 @@ namespace CanvasTools.Windows.Interfaces;
 /// </summary>
 public interface IShell
 {
+    /// <summary>
+    /// The current user.
+    /// </summary>
+    IUser? CurrentUser { get; set; }
+
     /// <summary>
     /// The current view in the shell.
     /// </summary>
@@ -37,6 +43,11 @@ public interface IShell
     /// </summary>
     /// <param name="view">The view to display.</param>
     void DisplayView(object view);
+
+    /// <summary>
+    /// Initialises the current view if possible.
+    /// </summary>
+    void InitialiseCurrentView();
 
     /// <summary>
     /// Restores the previous view.

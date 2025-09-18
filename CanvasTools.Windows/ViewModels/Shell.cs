@@ -1,12 +1,30 @@
-﻿using CanvasTools.Windows.Interfaces;
+﻿using CanvasTools.Connection;
+using CanvasTools.Windows.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 
 namespace CanvasTools.Windows.ViewModels;
 
 public partial class Shell
     : ObservableObject, IShell
 {
+    private readonly ILogger _logger;
+    private readonly IProgress<StatusUpdate> _progress;
+
+    /// <summary>
+    /// The current view stack.
+    /// </summary>
+    private readonly Stack<object> _viewStack = [];
+
+    private string? _associatedFile;
+
+    /// <summary>
+    /// The current user.
+    /// </summary>
+    [ObservableProperty]
+    private IUser? _currentUser;
+
     /// <summary>
     /// The current view.
     /// </summary>
@@ -27,32 +45,20 @@ public partial class Shell
     private bool _isLoading;
 
     /// <summary>
-    /// Opens the associated file.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(HasAssociatedFile))]
-    private Task OpenAssociatedFile()
-    {
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
-    /// Initialises a new <see cref="Shell"/> instance.
-    /// </summary>
-    public Shell()
-    {
-        _progress = new Progress<StatusUpdate>(OnUpdateStatus);
-    }
-
-    /// <summary>
     /// The text about the current status.
     /// </summary>
     [ObservableProperty]
     private string _statusText = string.Empty;
 
     /// <summary>
-    /// The current view stack.
+    /// Initialises a new <see cref="Shell"/> instance.
     /// </summary>
-    private readonly Stack<object> _viewStack = [];
+    /// <param name="logger">The logger to use.</param>
+    public Shell(ILogger logger)
+    {
+        _logger = logger.ForContext<Shell>();
+        _progress = new Progress<StatusUpdate>(OnUpdateStatus);
+    }
 
     /// <summary>
     /// Displays a new view.
@@ -62,6 +68,14 @@ public partial class Shell
     {
         if (CurrentView != null) _viewStack.Push(CurrentView);
         CurrentView = view;
+    }
+
+    /// <summary>
+    /// Initialises the current view if possible.
+    /// </summary>
+    public void InitialiseCurrentView()
+    {
+        if (CurrentView is IInitialisable initialisable) initialisable.Initialise();
     }
 
     /// <summary>
@@ -82,12 +96,8 @@ public partial class Shell
     /// <param name="associatedFile">An associated file that can be opened by the user.</param>
     public void UpdateStatus(string statusText, bool isLoading = false, string? associatedFile = null)
     {
-        _progress.Report(new(statusText, isLoading, associatedFile));
+        _progress.Report(new StatusUpdate(statusText, isLoading, associatedFile));
     }
-
-    private readonly IProgress<StatusUpdate> _progress;
-
-    private string? _associatedFile;
 
     private void OnUpdateStatus(StatusUpdate status)
     {
@@ -95,6 +105,16 @@ public partial class Shell
         IsLoading = status.IsLoading;
         _associatedFile = status.AssociatedFile;
         HasAssociatedFile = !string.IsNullOrEmpty(_associatedFile);
+        _logger.Debug("Status update: {status}", status.Text);
+    }
+
+    /// <summary>
+    /// Opens the associated file.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(HasAssociatedFile))]
+    private Task OpenAssociatedFile()
+    {
+        throw new NotImplementedException();
     }
 
     private record StatusUpdate(string Text, bool IsLoading, string? AssociatedFile);
