@@ -1,0 +1,42 @@
+﻿<Window x:Class="CanvasTools.Windows.Views.Main"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CanvasTools.Windows.ViewModels"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance local:Main}"
+        Title="Canvas Tools" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Column="0" Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Window">
+                <MenuItem Header="_Logs" Command="{Binding ShowLogCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <ContentControl Grid.Row="1" Content="{Binding Shell.CurrentView}" />
+
+        <StatusBar Grid.Column="0" Grid.Row="2">
+            <ProgressBar Width="100" HorizontalAlignment="Left" Height="16" Margin="3" IsIndeterminate="True"
+                         Visibility="{Binding Shell.IsLoading, Converter={StaticResource BoolToVisibility}}" />
+            <Separator Margin="2,4" Visibility="{Binding Shell.IsLoading, Converter={StaticResource BoolToVisibility}}" />
+            <StatusBarItem VerticalAlignment="Center" Height="26">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Shell.StatusText}" />
+                    <Button Visibility="{Binding Shell.HasAssociatedFile, Converter={StaticResource BoolToVisibility}}" Margin="3,0,0,0"
+                            BorderThickness="0" Background="Transparent" Command="{Binding Shell.OpenAssociatedFileCommand}">
+                        <TextBlock Text="(open)" TextDecorations="Underline" />
+                    </Button>
+                </StackPanel>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
